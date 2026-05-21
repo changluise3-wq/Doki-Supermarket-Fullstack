@@ -3,32 +3,45 @@ const mysql = require('mysql2');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
-const saltRounds = 10; 
+const jwt = require('jsonwebtoken');
 
 const app = express();
+const SECRET_KEY = "doki_supermarket_secret_2024"; 
+const saltRounds = 10;
+
 app.use(cors());
 app.use(bodyParser.json());
 
-// MySQL 連接配置
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: 'beaniceperson2020', //process.env.DB_PASSWORD || ''
+    password: 'beaniceperson2020', 
     database: 'doki_supermarket'
 });
 
 db.connect(err => {
-    if (err) {
-        console.error('❌ database failed to connect:', err);
-        throw err;
-    }
-    console.log('✅ MySQL Connected to doki_supermarket');
+    if (err) throw err;
+    console.log('MySQL Connected & All Functions Integrated');
 });
 
+// --- JWT 驗證中間件 ---
+const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    if (!token) return res.status(401).json({ message: "Token Required" });
+
+    jwt.verify(token, SECRET_KEY, (err, decoded) => {
+        if (err) return res.status(403).json({ message: "Invalid Token" });
+        req.user = decoded; 
+        next();
+    });
+};
+
 // ==========================================
-// 1. 購物前台 API
+// 1. 前台基礎功能 (保留原本邏輯)
 // ==========================================
-// 獲取所有產品
+
+// [保留] 獲取所有產品 (用於 Live Search)
 app.get('/api/products', (req, res) => {
     db.query("SELECT * FROM products", (err, results) => {
         if (err) return res.status(500).json(err);
@@ -36,86 +49,21 @@ app.get('/api/products', (req, res) => {
     });
 });
 
-// 【READ】 讀取購物車
-app.get('/api/cart', (req, res) => {
-    db.query("SELECT * FROM cart", (err, results) => {
-        if (err) return res.status(500).json(err);
-        res.json(results);
-    });
-});
-
-// 【POST】 新增或更新數量
-app.post('/api/cart', (req, res) => {
-    const { name, price } = req.body;
-    const checkSql = "SELECT * FROM cart WHERE product_name = ?";
-    db.query(checkSql, [name], (err, results) => {
-        if (err) return res.status(500).json(err);
-        
-        if (results.length > 0) {
-            db.query("UPDATE cart SET quantity = quantity + 1 WHERE product_name = ?", [name], (err) => {
-                if (err) return res.status(500).json(err);
-                res.json({ message: "Updated" });
-            });
-        } else {
-            db.query("INSERT INTO cart (product_name, price, quantity) VALUES (?, ?, 1)", [name, price], (err) => {
-                if (err) return res.status(500).json(err);
-                res.json({ message: "Added" });
-            });
-        }
-    });
-});
-
-// 【PUT】 依照 ID 更新數量
-app.put('/api/cart/:id', (req, res) => {
-    const { quantity } = req.body;
-    const { id } = req.params;
-    db.query("UPDATE cart SET quantity = ? WHERE id = ?", [quantity, id], (err) => {
-        if (err) return res.status(500).json(err);
-        res.json({ message: "Quantity Updated" });
-    });
-});
-
-// 【DELETE】 依照 ID 刪除
-app.delete('/api/cart/:id', (req, res) => {
-    const { id } = req.params;
-    db.query("DELETE FROM cart WHERE id = ?", [id], (err) => {
-        if (err) return res.status(500).json(err);
-        res.json({ message: "Deleted" });
-    });
-});
-
-// ==========================================
-// 2. 身分驗證與個人資料 API
-// ==========================================
-
-// 登入
+// [升級] 登入 (加入 Token 回傳)
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
-    console.log("嘗試登入帳號:", username); // 除錯用
-
-    const sql = "SELECT * FROM users WHERE username = ?";
-
-    db.query(sql, [username], async (err, results) => {
-        if (err) return res.status(500).json({ error: "Database error" });
-        if (results.length === 0) {
-            console.log("找不到此使用者"); // 除錯用
-            return res.status(401).json({ message: "User not found" });
-        }
+    db.query("SELECT * FROM users WHERE username = ?", [username], async (err, results) => {
+        if (results.length === 0) return res.status(401).json({ message: "User not found" });
         const user = results[0];
+        if (user.status === 'suspended') return res.status(403).json({ message: "Account suspended." });
+        
         const match = await bcrypt.compare(password, user.password);
-        console.log("密碼比對結果:", match); // 除錯用
-
         if (match) {
-            res.json({
-                success: true,
-                user: { 
-                    id: user.id, 
-                    username: user.username, 
-                    role: user.role,
-                    fullName: user.full_name,
-                    address: user.address,
-                    phone: user.phone
-                }
+            const token = jwt.sign({ id: user.id, role: user.role }, SECRET_KEY, { expiresIn: '24h' });
+            res.json({ 
+                success: true, 
+                token, 
+                user: { id: user.id, username: user.username, role: user.role, fullName: user.full_name, address: user.address, phone: user.phone } 
             });
         } else {
             res.status(401).json({ success: false, message: "Wrong password" });
@@ -123,88 +71,168 @@ app.post('/api/login', (req, res) => {
     });
 });
 
-// 註冊 (加密密碼)
+// [保留] 註冊
 app.post('/api/register', async (req, res) => {
     const { username, password, phone } = req.body;
-    try {
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
-        const sql = "INSERT INTO users (username, password, phone, role) VALUES (?, ?, ?, 'user')";
-        db.query(sql, [username, hashedPassword, phone], (err) => {
-            if (err) return res.status(400).json({ success: false, message: "Username exists or DB error" });
-            res.json({ success: true, message: "Registered!" });
-        });
-    } catch (e) { res.status(500).send("Error"); }
+    const hashed = await bcrypt.hash(password, saltRounds);
+    db.query("INSERT INTO users (username, password, phone, role) VALUES (?, ?, ?, 'user')", [username, hashed, phone], (err) => {
+        if (err) return res.status(400).json({ success: false, message: "Username exists" });
+        res.json({ success: true });
+    });
 });
 
-// 更新個人資料
-app.put('/api/user/profile/:id', (req, res) => {
-    const { id } = req.params;
+// [保留] 更新個人資料 (加入 Token 保護)
+app.put('/api/user/profile/:id', authenticateToken, (req, res) => {
     const { fullName, address, phone } = req.body;
-    const sql = "UPDATE users SET full_name = ?, address = ?, phone = ? WHERE id = ?";
-    db.query(sql, [fullName, address, phone, id], (err) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ success: true, message: "Profile updated!" });
+    // 確保使用者只能改自己的資料
+    if (req.user.id != req.params.id) return res.status(403).send("Forbidden");
+    db.query("UPDATE users SET full_name = ?, address = ?, phone = ? WHERE id = ?", [fullName, address, phone, req.params.id], (err) => {
+        if (err) return res.status(500).json(err);
+        res.json({ success: true });
     });
 });
 
 // ==========================================
-// 3. 管理員後台專用 API
+// 2. 購物車與結帳 (三層架構升級)
 // ==========================================
-
-// 獲取所有訂單 (用於後台 Orders 分頁)
-app.get('/api/admin/orders', (req, res) => {
-    db.query("SELECT * FROM cart", (err, results) => {
+// [新增] 獲取購物車內容 (帶 Token)
+app.get('/api/cart', authenticateToken, (req, res) => {
+    // 修正：確保欄位名稱與 doki.sql 一致
+    const sql = "SELECT c.id, c.quantity, p.id as product_id, p.name, p.price FROM cart c JOIN products p ON c.product_id = p.id WHERE c.user_id = ?";
+    db.query(sql, [req.user.id], (err, results) => {
         if (err) return res.status(500).json(err);
         res.json(results);
     });
 });
+// [新增] 加入購物車 (帶 Token)
+app.post('/api/cart', authenticateToken, (req, res) => {
+    const { product_id, quantity } = req.body;
+    const userId = req.user.id;
 
-// 獲取所有用戶清單 (用於後台 CRM 與 Admin Team 分頁)
-app.get('/api/admin/users', (req, res) => {
-    // 重要：必須抓取全名、地址、電話，CRM 才能顯示資料
-    const sql = "SELECT id, username, role, full_name, address, phone FROM users";
+    // 檢查是否已在車內
+    db.query("SELECT * FROM cart WHERE user_id = ? AND product_id = ?", [userId, product_id], (err, results) => {
+        if (results.length > 0) {
+            // 已存在：累加數量
+            db.query("UPDATE cart SET quantity = quantity + ? WHERE user_id = ? AND product_id = ?", [quantity, userId, product_id], () => res.json({ success: true }));
+        } else {
+            // 不存在：新增紀錄
+            db.query("INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, ?)", [userId, product_id, quantity], () => res.json({ success: true }));
+        }
+    });
+});
+// 使用者自行修改數量與刪除
+app.put('/api/cart/:id', authenticateToken, (req, res) => {
+    db.query("UPDATE cart SET quantity = ? WHERE id = ? AND user_id = ?", [req.body.quantity, req.params.id, req.user.id], () => res.json({ success: true }));
+});
+
+app.delete('/api/cart/:id', authenticateToken, (req, res) => {
+    db.query("DELETE FROM cart WHERE id = ? AND user_id = ?", [req.params.id, req.user.id], () => res.json({ success: true }));
+});
+
+// 結帳搬移邏輯 (Transaction)
+app.post('/api/checkout', authenticateToken, (req, res) => {
+    const { notes } = req.body;
+    const userId = req.user.id;
+
+    db.beginTransaction((err) => {
+        const sql = "SELECT c.*, p.name, p.price FROM cart c JOIN products p ON c.product_id = p.id WHERE c.user_id = ?";
+        db.query(sql, [userId], (err, items) => {
+            if (err || !items.length) return db.rollback(() => res.status(400).send("Cart is empty"));
+
+            const total = items.reduce((s, i) => s + (i.price * i.quantity), 0);
+
+            // 1. 插入訂單主表
+            db.query("INSERT INTO orders (user_id, total_price, notes) VALUES (?, ?, ?)", [userId, total, notes || ""], (err, result) => {
+                if (err) return db.rollback(() => res.status(500).send("Orders Table Error"));
+                
+                const orderId = result.insertId;
+
+                // 2. 關鍵：這裡必須傳入 5 個值，且順序要跟 SQL 一模一樣
+                // 順序：order_id, product_id, product_name, price_at_purchase, quantity
+                const vals = items.map(i => [orderId, i.product_id, i.name, i.price, i.quantity]);
+                const itemSql = "INSERT INTO order_items (order_id, product_id, product_name, price_at_purchase, quantity) VALUES ?";
+                
+                db.query(itemSql, [vals], (err2) => {
+                    if (err2) {
+                        console.error(" SQL Error:", err2.sqlMessage); 
+                        return db.rollback(() => res.status(500).send("Order Items Error: " + err2.sqlMessage));
+                    }
+
+                    // 3. 清空購物車
+                    db.query("DELETE FROM cart WHERE user_id = ?", [userId], () => {
+                        db.commit(() => res.json({ success: true, orderId }));
+                    });
+                });
+            });
+        });
+    });
+});
+
+// ==========================================
+// 3. 管理員功能 (保留所有原本功能並補強)
+// ==========================================
+
+// [保留] 獲取所有用戶 (CRM)
+app.get('/api/admin/users', authenticateToken, (req, res) => {
+    if (req.user.role !== 'admin') return res.status(403).send("Denied");
+    db.query("SELECT id, username, role, full_name, address, phone, status FROM users", (err, results) => res.json(results));
+});
+
+// [保留] 修改用戶權限與狀態 (Manage)
+app.put('/api/admin/users/:id/manage', authenticateToken, (req, res) => {
+    if (req.user.role !== 'admin') return res.status(403).send("Denied");
+    const { role, status } = req.body;
+    db.query("UPDATE users SET role = ?, status = ? WHERE id = ?", [role, status, req.params.id], () => res.json({ success: true }));
+});
+
+// [保留] 手動建立管理員
+app.post('/api/admin/create-admin', authenticateToken, async (req, res) => {
+    if (req.user.role !== 'admin') return res.status(403).send("Denied");
+    
+    // 只解構需要的欄位
+    const { username, password } = req.body;
+    
+    try {
+        const hashed = await bcrypt.hash(password, saltRounds);
+        
+        // 預設將 full_name 和 phone 給予空字串或 null
+        const sql = "INSERT INTO users (username, password, full_name, phone, role) VALUES (?, ?, ?, ?, 'admin')";
+        const values = [username, hashed, "", "", 'admin']; // fullName 和 phone 先給空值
+        
+        db.query(sql, values, (err, result) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ success: false, message: "Database error" });
+            }
+            res.json({ success: true });
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+// [新增] 監控全域購物車 (作業要求)
+app.get('/api/admin/all-carts', authenticateToken, (req, res) => {
+    // ⚠️ 關鍵修正：必須 JOIN products 才能拿到商品名稱 (name)
+    const sql = `
+        SELECT c.*, p.name, p.price 
+        FROM cart c 
+        JOIN products p ON c.product_id = p.id
+    `;
     db.query(sql, (err, results) => {
-        if (err) return res.status(500).json({ error: "Database error" });
+        if (err) return res.status(500).send(err);
         res.json(results);
     });
 });
 
-// 修改用戶權限 (方法 B: 升級/降級)
-app.put('/api/admin/users/:id/role', (req, res) => {
-    const { id } = req.params;
-    const { newRole } = req.body;
-
-    if (!['admin', 'user'].includes(newRole)) {
-        return res.status(400).json({ error: "Invalid role type" });
-    }
-
-    const sql = "UPDATE users SET role = ? WHERE id = ?";
-    db.query(sql, [newRole, id], (err, result) => {
-        if (err) return res.status(500).json({ error: "Database error" });
-        res.json({ success: true, message: "User role updated successfully" });
-    });
+// [新增] 刪除用戶
+app.delete('/api/admin/users/:id', authenticateToken, (req, res) => {
+    if (req.user.role !== 'admin') return res.status(403).send("Denied");
+    db.query("DELETE FROM users WHERE id = ?", [req.params.id], () => res.json({ success: true }));
 });
 
-// 手動建立管理員 (方法 A: 加密密碼)
-app.post('/api/admin/create-admin', async (req, res) => {
-    const { username, password, fullName, phone } = req.body;
-
-    try {
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
-        const sql = "INSERT INTO users (username, password, full_name, phone, role) VALUES (?, ?, ?, ?, 'admin')";
-        db.query(sql, [username, hashedPassword, fullName, phone], (err, result) => {
-            if (err) {
-                if (err.code === 'ER_DUP_ENTRY') {
-                    return res.status(400).json({ success: false, message: "Admin username already exists" });
-                }
-                return res.status(500).json({ error: "Creation failed" });
-            }
-            res.json({ success: true, message: "New admin created successfully!" });
-        });
-    } catch (error) {
-        res.status(500).json({ error: "Server error" });
-    }
+app.get('/api/admin/orders', authenticateToken, (req, res) => {
+    db.query("SELECT o.*, u.username FROM orders o JOIN users u ON o.user_id = u.id", (err, r) => res.json(r));
 });
 
-const PORT = 3000;
-app.listen(PORT, () => console.log(`🚀 Server on http://localhost:${PORT}`));
+app.listen(3000, () => console.log('Final Unified Server Running'));

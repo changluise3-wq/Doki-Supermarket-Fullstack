@@ -1,19 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 function UserProfile({ user, onUpdate }) {
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState({
-    fullName: user?.fullName || "",
+    fullName: user?.fullName || user?.full_name || "",
     address: user?.address || "",
     phone: user?.phone || ""
   });
 
-  // 電話限制邏輯：只能輸入數字且上限 10 碼
+  // 進入編輯模式時，重新同步最新的 user 資料到輸入框
+  const handleStartEdit = () => {
+    setProfile({
+      fullName: user?.fullName || user?.full_name || "",
+      address: user?.address || "",
+      phone: user?.phone || ""
+    });
+    setIsEditing(true);
+  };
+
+  // 修正電話輸入邏輯：確保只能輸入數字且上限 10 碼
   const handlePhoneChange = (e) => {
-    const value = e.target.value.replace(/\D/g, ""); // 移除所有非數字字元
-    if (value.length <= 10) {
-      setProfile({ ...profile, phone: value });
+    const value = e.target.value;
+    // 1. 允許空字串（這樣你才能把字刪掉）
+    // 2. 檢查是否為純數字且長度 <= 10
+    if (value === "" || (/^\d+$/.test(value) && value.length <= 10)) {
+        setProfile(prev => ({ ...prev, phone: value }));
     }
   };
 
@@ -25,64 +37,96 @@ function UserProfile({ user, onUpdate }) {
     }
 
     try {
-      await axios.put(`http://localhost:3000/api/user/profile/${user?.id}`, profile);
-      alert("Profile updated!");
+      const token = localStorage.getItem('token'); // 取得 Token
+      
+      // 執行更新，並帶上正確的 Headers 解決 401 問題
+      await axios.put(`http://localhost:3000/api/user/profile/${user?.id}`, profile, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      alert("Profile updated successfully!");
       setIsEditing(false);
-      if (onUpdate) onUpdate(); // 呼叫父組件重新獲取使用者資料
+      
+      // 觸發 App.jsx 的 fetchUserStatus 重新抓取資料庫內容
+      if (onUpdate) onUpdate(); 
     } catch (err) {
-      alert("Update failed");
+      console.error("Update error:", err);
+      alert("Update failed: " + (err.response?.data?.message || "Please check your connection"));
     }
   };
 
   return (
     <section className="card profile-card">
-      <h3>{user?.role === 'admin' ? "🛠️ Admin Profile" : "👤 My Profile"}</h3>
+      <div className="profile-header">
+        <h3 className="section-title">
+          {user?.role === 'admin' ? "Administrator Profile" : "Customer Profile"}
+        </h3>
+      </div>
       <hr className="separator" />
       
       {isEditing ? (
         <div className="edit-form">
-          <label className="field-label">Full Name</label>
-          <input 
-            className="search-input" 
-            value={profile.fullName}
-            placeholder="Your full name"
-            onChange={(e) => setProfile({...profile, fullName: e.target.value})}
-          />
+          <div className="form-group">
+            <label className="field-label">Full Name</label>
+            <input 
+              className="search-input" 
+              value={profile.fullName}
+              placeholder="Enter your real name"
+              onChange={(e) => setProfile({...profile, fullName: e.target.value})}
+            />
+          </div>
           
-          <label className="field-label">Delivery Address</label>
-          <input 
-            className="search-input" 
-            value={profile.address}
-            placeholder="Street address, City, NSW"
-            onChange={(e) => setProfile({...profile, address: e.target.value})}
-          />
+          <div className="form-group">
+            <label className="field-label">Delivery Address</label>
+            <input 
+              className="search-input" 
+              value={profile.address}
+              placeholder="e.g. 123 George St, Sydney, NSW"
+              onChange={(e) => setProfile({...profile, address: e.target.value})}
+            />
+          </div>
           
-          <label className="field-label">Phone Number (10 digits)</label>
-          <input 
-            className="search-input" 
-            value={profile.phone}
-            placeholder="e.g. 0412345678"
-            onChange={handlePhoneChange} 
-          />
+          <div className="form-group">
+            <label className="field-label">Phone Number</label>
+            <input 
+              className="search-input" 
+              value={profile.phone}
+              placeholder="Must be 10 digits"
+              onChange={handlePhoneChange} 
+            />
+          </div>
           
           <div className="form-actions">
-            <button className="add-btn" onClick={handleSaveProfile}>Save Changes</button>
-            <button className="admin-nav-btn" onClick={() => setIsEditing(false)}>Cancel</button>
+            <button className="btn-edit-blue" onClick={handleSaveProfile}>Save Changes</button>
+            <button className="btn-gray" onClick={() => setIsEditing(false)}>Cancel</button>
           </div>
         </div>
       ) : (
         <div className="display-info">
-          <p className="info-row"><strong>Username:</strong> {user?.username}</p>
-          <p className="info-row">
-            <strong>Role:</strong> 
+          <div className="info-row">
+            <strong>Username:</strong> <span>{user?.username}</span>
+          </div>
+          <div className="info-row">
+            <strong>Account Role:</strong> 
             <span className={`role-badge ${user?.role === 'admin' ? 'role-admin' : 'role-user'}`}>
               {user?.role?.toUpperCase()}
             </span>
-          </p>
-          <p className="info-row"><strong>Full Name:</strong> {user?.fullName || "Not set"}</p>
-          <p className="info-row"><strong>Phone:</strong> {user?.phone || "Not set"}</p>
-          <p className="info-row"><strong>Address:</strong> {user?.address || "Not set"}</p>
-          <button className="add-btn" onClick={() => setIsEditing(true)}>Edit Details</button>
+          </div>
+          <div className="info-row">
+            <strong>Full Name:</strong> 
+            <span>{user?.fullName || user?.full_name || "Not set"}</span>
+          </div>
+          <div className="info-row">
+            <strong>Phone:</strong> 
+            <span>{user?.phone || "Not set"}</span>
+          </div>
+          <div className="info-row">
+            <strong>Delivery Address:</strong> 
+            <span>{user?.address || "Not set"}</span>
+          </div>
+          <div className="profile-footer">
+            <button className="btn-edit-blue" onClick={handleStartEdit}>Edit Profile Details</button>
+          </div>
         </div>
       )}
     </section>

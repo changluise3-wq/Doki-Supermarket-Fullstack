@@ -4,42 +4,50 @@ import Shop from './pages/Shop';
 import AdminDashboard from './pages/AdminDashboard';
 import LoginModal from './components/LoginModal';
 import UserProfile from './pages/UserProfile';
+import CartPage from './components/CartPage';
+import CheckoutPage from './pages/CheckoutPage';
 import './App.css';
 
 function App() {
   const [page, setPage] = useState('shop');
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')));
   const [cart, setCart] = useState([]);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
-  // 1. 獲取購物車資料
+  // 1. 獲取購物車 (自動帶 Token)
   const fetchCart = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return setCart([]);
     try {
-      const res = await axios.get("http://localhost:3000/api/cart");
+      const res = await axios.get("http://localhost:3000/api/cart", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setCart(res.data);
-    } catch (err) {
-      console.error("Cart fetch error:", err);
-    }
+    } catch (err) { console.error(err); }
   };
 
-  // 2. 獲取用戶最新狀態 (修正原本未定義的問題)
+  // 2. 獲取用戶狀態 (用於 Profile 更新後同步)
   const fetchUserStatus = async () => {
-    if (!user) return;
+    const token = localStorage.getItem('token');
+    if (!user || !token) return;
     try {
-      // 這裡通常是呼叫獲取個人資料的 API，暫時用來刷新前端 user 狀態
-      const res = await axios.get(`http://localhost:3000/api/admin/users`);
+      const res = await axios.get(`http://localhost:3000/api/admin/users`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const currentUser = res.data.find(u => u.id === user.id);
-      if (currentUser) setUser(currentUser);
-    } catch (err) {
-      console.error("Update user status error:", err);
-    }
+      if (currentUser) {
+        setUser(currentUser);
+        localStorage.setItem('user', JSON.stringify(currentUser));
+      }
+    } catch (err) { console.error(err); }
   };
 
   useEffect(() => {
     fetchCart();
-  }, []);
+  }, [user]);
 
-  // 3. 註冊邏輯 (修正: 接收 LoginModal 傳來的整個物件)
+  // 3. 註冊與登入邏輯 (保持不變)
   const handleRegister = async (registrationData) => {
     try {
       const res = await axios.post("http://localhost:3000/api/register", registrationData);
@@ -52,30 +60,31 @@ function App() {
     }
   };
 
-  // 4. 登入邏輯
+  // 4.登入 (存入 Token)
   const handleLogin = async (username, password) => {
     try {
       const res = await axios.post("http://localhost:3000/api/login", { username, password });
       if (res.data.success) {
-        const loggedInUser = res.data.user;
-        setUser(loggedInUser);
+        localStorage.setItem('token', res.data.token);
+        localStorage.setItem('user', JSON.stringify(res.data.user));
+        setUser(res.data.user);
         setIsLoginOpen(false);
-        // 管理員預設進後台，一般用戶留商店
-        setPage(loggedInUser.role === 'admin' ? 'admin' : 'shop');
-        console.log("前端傳來的資料:", { username, password });
-        alert(`Welcome back, ${loggedInUser.username}!`);
+        if (res.data.user.role === 'admin') {
+        setPage('admin'); // 管理員登入直接進管理後台
+        } else {
+          setPage('shop');  // 一般用戶進商店
+        }
       }
-    } catch (err) {
-      console.log("前端傳來的資料:", { username, password });
-      alert("Login failed! Please check your credentials.");
-    }
+    } catch (err) { alert(err.response?.data?.message || "Login failed"); }
   };
 
-  // 5. 登出邏輯
+  // 5.登出
   const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setUser(null);
+    setCart([]);
     setPage('shop');
-    alert("Logged out.");
   };
 
   return (
@@ -96,32 +105,42 @@ function App() {
                   Hi, {user.username} <span className="user-role-tag">({user.role})</span>
                 </span>
 
-                {/* 權限控制：管理員專屬切換鈕 */}
+                {/* --- 管理員切換鈕 --- */}
                 {user.role === 'admin' && (
                   <div className="admin-toggle-group">
-                    <button className={`nav-btn ${page === 'shop' ? 'active' : ''}`} onClick={() => setPage('shop')}>Shop View</button>
-                    <button className={`nav-btn ${page === 'admin' ? 'active' : ''}`} onClick={() => setPage('admin')}>Admin Panel</button>
+                    {page === 'admin' ? (
+                      <button className="nav-btn" onClick={() => setPage('shop')}>🛒 Back to Shop</button>
+                    ) : (
+                      <button className="nav-btn" onClick={() => setPage('admin')}>🛠️ Admin Dashboard</button>
+                    )}
                   </div>
                 )}
 
-                <button className={`nav-btn ${page === 'profile' ? 'active' : ''}`} onClick={() => setPage('profile')}>My Profile</button>
+                {/* 非後台模式下才顯示個人資料按鈕 */}
+                {page !== 'admin' && (
+                  <button className={`nav-btn ml-10 ${page === 'profile' ? 'active' : ''}`} onClick={() => setPage('profile')}>
+                    My Profile
+                  </button>
+                )}
+                
                 <button className="nav-btn ml-10" onClick={handleLogout}>Logout</button>
               </>
             )}
 
-            {page === 'shop' && (
-              <button className="nav-btn ml-10 badge-container">
-                🛒 Cart
-                <span className="badge">{cart.reduce((s, i) => s + i.quantity, 0)}</span>
+            {/* --- 只有在「非後台」頁面才顯示購物車 --- */}
+            {page !== 'admin' && (
+              <button className="nav-btn ml-10 badge-container" onClick={() => setIsCartOpen(true)}>
+                🛒 Cart <span className="badge">{cart.length}</span>
               </button>
             )}
           </div>
         </div>
 
-        {page === 'shop' && (
+        {/* --- 只有在「非後台」頁面才顯示商店導覽列 --- */}
+        {page !== 'admin' && (
           <nav>
             <ul>
-              <li><a href="#home">Home</a></li>
+              <li><button className="text-link" onClick={() => setPage('shop')}>Home</button></li>
               <li><a href="#new">New Arrivals</a></li>
               <li><a href="#contact">Contact</a></li>
             </ul>
@@ -130,22 +149,39 @@ function App() {
       </header>
 
       <main className="container">
-        {/* 分頁路由邏輯 - 修正重複渲染問題 */}
+        {/* 個人資料頁面：負責編輯與顯示個人資訊 */}
         {page === 'profile' && user && <UserProfile user={user} onUpdate={fetchUserStatus} />}
-        
-        {page === 'admin' && (
-          user?.role === 'admin' ? (
-            <AdminDashboard user={user} />
-          ) : (
-            <div className="access-denied-container">
-              <h2 className="access-denied-title">⚠️ Access Denied</h2>
-              <p>You do not have permission to view this page.</p>
-              <button className="add-btn" onClick={() => setPage('shop')}>Return to Shop</button>
-            </div>
-          )
+        {/* 管理員頁面 */}
+        {page === 'admin' && user?.role === 'admin' && (
+          <AdminDashboard user={user} />
         )}
-
-        {page === 'shop' && <Shop cart={cart} onUpdate={fetchCart} user={user} />}
+        {/* 商店頁面：負責產品與購物 */}
+        {page === 'shop' && <Shop cart={cart} onUpdate={fetchCart} user={user} setIsLoginOpen={setIsLoginOpen}/>}
+        
+        {/* {page === 'cart' && <CartPage user={user} cart={cart} onUpdate={fetchCart} onClose={() => setPage('shop')}/>} */}
+        {isCartOpen && (
+          <CartPage 
+            cart={cart} 
+            onClose={() => setIsCartOpen(false)} 
+            onUpdate={fetchCart} // ⚠️ 檢查這裡，必須叫 onUpdate 且傳入 fetchCart
+            onCheckout={() => {
+              setIsCartOpen(false);
+              setPage('checkout');
+            }}
+          />
+        )}
+        {page === 'checkout' && (
+          <CheckoutPage 
+            cart={cart} 
+            user={user} 
+            onOrderComplete={() => {
+              alert("Order Placed Successfully!");
+              setPage('shop');    // 1. 跳回商店
+              fetchCart();        // 2. ⚠️ 關鍵：重新執行 API，抓取被後端刪除後的空購物車
+              fetchUserStatus();  // 3. 同步用戶資料
+            }}
+          />
+        )}
       </main>
 
       <LoginModal 

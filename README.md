@@ -1,37 +1,49 @@
-# 🍪 Do Do Do Doki - Taiwanese Grocery E-Commerce
+# Full-Stack E-Commerce System
 
-A full-stack e-commerce platform specializing in Taiwanese snacks and groceries. This project is built using **React (Vite)** for the frontend, **Node.js (Express)** for the backend, and **MySQL** for the database.
-
-## Key Features
-- **Shopping Experience**: Browse products, keyword search, and real-time shopping cart management.
-- **Member System**: Secure registration and login with **Bcrypt** password hashing.
-- **User Profile**: Update personal details including full name, address, and phone number.
-- **Admin Dashboard**: Manage order statuses (Pending, Shipped, Cancelled) and control user permissions (Promote/Demote Admins).
-- **Responsive Design**: Optimized for various screen sizes for a seamless shopping experience.
-
----
+A comprehensive web application featuring a robust management dashboard, real-time inventory tracking, and a seamless checkout experience.
 
 ## Tech Stack
-- **Frontend**: React.js, Vite, Axios, CSS3
-- **Backend**: Node.js, Express.js
-- **Database**: MySQL 8.0
-- **Authentication**: Bcrypt.js (Password Hashing)
+* **Frontend:** React.js, Axios, React Router
+* **Backend:** Node.js (Express), JWT Authentication
+* **Database:** MySQL (Relational Database Management)
 
 ---
 
-## Getting Started
+## Key Features
+* **Authentication:** Secure login/register with JWT tokens.
+* **Admin Controls:** Manage user permissions (User/Admin) and account status (Active/Suspended).
+* **Real-time Feedback:** Instant UI updates for cart modifications and search results.
 
-### 1. Prerequisites
-- **Node.js** (v16 or higher)
-- **MySQL** (v8.0)
-- **NPM** (comes with Node.js)
+## Installation
+1. Clone the repository.
+2. Install dependencies: `npm install`.
+3. Import `doki.sql` into your MySQL server.
+4. Start backend: `node server.js`.
+5. Start frontend: `npm run dev`.
 
-### 2. Database Setup
-1. Create a database named `doki_supermarket` in your MySQL environment.
-2. Import the `backend/doki.sql` file provided in this repository to set up tables and sample data.
+---
 
-### 3. Backend Setup
-```bash
-cd backend
-npm install
-node server.js
+## Student 1: Jui-Yu, Chang (25608480)
+
+I was responsible for developing the core administrative logic and essential user account functionalities. Below are the key modules I implemented:
+
+### 1. Admin Management Dashboard
+* **Full Dashboard UI:** Created the entire administrative interface for centralized control.
+* **Live Search Functionality:** Built a real-time filtering system using React state, enabling admins to search users, orders, and products instantly.
+* **Live User Cart Tracking:** Developed a module using SQL Joins to allow admins to monitor active shopping carts in real-time.
+
+### 2. User Account & Profile Management
+* **My Profile:** Built the profile page for users to view and update personal data like addresses and contact info.
+* **Data Persistence:** Integrated frontend forms with MySQL to ensure user information is saved securely.
+
+### 3. Shopping Cart & Inventory Logic
+* **Persistent Cart:** Implemented the shopping cart system that saves items across different user sessions.
+* **Dynamic Calculations:** Automated the calculation of subtotals and totals based on real-time price data.
+
+### 4. Order Management & Transactional Checkout
+* **Order History:** Developed the user-facing view for tracking past orders and delivery statuses.
+* **Atomic Checkout Process:** Engineered a backend Database Transaction that:
+    1. Validates the active cart.
+    2. Transfers items from cart to orders and order_items.
+    3. Resets the user's shopping cart upon successful payment.
+* **Data Integrity:** Ensured price_at_purchase is recorded to prevent historical data errors if product prices change in the future.
