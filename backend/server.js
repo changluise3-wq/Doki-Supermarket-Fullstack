@@ -225,6 +225,53 @@ app.get('/api/admin/all-carts', authenticateToken, (req, res) => {
     });
 });
 
+app.get('/api/admin/orders', authenticateToken, (req, res) => {
+    // ⚠️ 核心邏輯：除了抓取訂單主表，還要 JOIN order_items 撈出商品明細
+    const sql = `
+        SELECT 
+            o.id AS order_id, o.user_id, o.total_price, o.status, o.notes, o.created_at,
+            u.username,
+            oi.id AS item_id, oi.product_name, oi.price_at_purchase, oi.quantity
+        FROM orders o
+        JOIN users u ON o.user_id = u.id
+        LEFT JOIN order_items oi ON o.id = oi.order_id
+        ORDER BY o.created_at DESC
+    `;
+
+    db.query(sql, (err, results) => {
+        if (err) return res.status(500).send(err);
+
+        // ⚠️ 關鍵：因為 JOIN 會產生多行重複的訂單資料，我們要在後端把相同 order_id 的商品打包成一個 items 陣列
+        const ordersMap = {};
+        results.forEach(row => {
+            if (!ordersMap[row.order_id]) {
+                ordersMap[row.order_id] = {
+                    id: row.order_id,
+                    user_id: row.user_id,
+                    username: row.username,
+                    total_price: row.total_price,
+                    status: row.status,
+                    notes: row.notes,
+                    created_at: row.created_at,
+                    items: [] // 用來放被購買的商品明細
+                };
+            }
+            // 如果這條紀錄有包含商品細項，就塞進陣列裡
+            if (row.item_id) {
+                ordersMap[row.order_id].items.push({
+                    id: row.item_id,
+                    name: row.product_name, // 👈 對齊前端點閱需要的 item.name
+                    price_at_purchase: row.price_at_purchase,
+                    quantity: row.quantity
+                });
+            }
+        });
+
+        // 將物件轉回陣列格式回傳給前端
+        res.json(Object.values(ordersMap));
+    });
+});
+
 // [新增] 刪除用戶
 app.delete('/api/admin/users/:id', authenticateToken, (req, res) => {
     if (req.user.role !== 'admin') return res.status(403).send("Denied");
