@@ -23,27 +23,20 @@ A comprehensive web application featuring a robust management dashboard, real-ti
 
 ---
 
-## Student 1: Jui-Yu, Chang (25608480)
+### Student 1: Yu-Ching, WU (Student ID: 25729536)
+**Focus:** User Authentication Module, Customer-Facing Shopping Cart Logic, and Final Checkout Implementation.
 
-I was responsible for developing the core administrative logic and essential user account functionalities. Below are the key modules I implemented:
+* **User Authentication & Security (Requirement 1):** Designed and implemented the client-side authentication system, including session state persistence using JWT and local storage tokens. Developed input validation and error handling for the interactive authentication view.
+* **Persistent Shopping Cart Logic:** Engineered the front-end cart subsystem. Built components to dynamic-render item subtotals, handle real-time item increments/decrements, and manage individual deletions.
+* **Integration of Core Feature Set:** Co-developed endpoints for user session security and token verification on customer routes.
+* **Files Implemented/Modified:** `LoginModal.jsx`, `CartPage.jsx`, `CheckoutPage.jsx`, App.css (Modal & Cart styles).
 
-### 1. Admin Management Dashboard
-* **Full Dashboard UI:** Created the entire administrative interface for centralized control.
-* **Live Search Functionality:** Built a real-time filtering system using React state, enabling admins to search users, orders, and products instantly.
-* **Live User Cart Tracking:** Developed a module using SQL Joins to allow admins to monitor active shopping carts in real-time.
+---
 
-### 2. User Account & Profile Management
-* **My Profile:** Built the profile page for users to view and update personal data like addresses and contact info.
-* **Data Persistence:** Integrated frontend forms with MySQL to ensure user information is saved securely.
+### Student 2: Jui-Yu, Chang (Student ID: 25608480)
+**Focus:** Relational Database Architecture, Real-Time Filtering Systems, and Admin Domain Management.
 
-### 3. Shopping Cart & Inventory Logic
-* **Persistent Cart:** Implemented the shopping cart system that saves items across different user sessions.
-* **Dynamic Calculations:** Automated the calculation of subtotals and totals based on real-time price data.
-
-### 4. Order Management & Transactional Checkout
-* **Order History:** Developed the user-facing view for tracking past orders and delivery statuses.
-* **Atomic Checkout Process:** Engineered a backend Database Transaction that:
-    1. Validates the active cart.
-    2. Transfers items from cart to orders and order_items.
-    3. Resets the user's shopping cart upon successful payment.
-* **Data Integrity:** Ensured price_at_purchase is recorded to prevent historical data errors if product prices change in the future.
+* **Live Search Architecture (Requirement 2):** Developed the real-time product filtering engine, utilizing stateful React query changes to sort and look up inventory instantly as the user types.
+* **Admin Dashboard & Profile Management (Requirement 3):** Designed the centralized administration interface allowing managers to execute CRUD controls on users and observe all global carts via relational database queries.
+* **Database Foundations & Security:** Constructed the doki.sql schemas and established the back-end environment file security configuration to eliminate hardcoded credentials.
+* **Files Implemented/Modified:** `AdminDashboard.jsx`, `UserProfile.jsx`, `Shop.jsx`, `server.js`, `doki.sql`.
