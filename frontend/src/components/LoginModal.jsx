@@ -1,44 +1,70 @@
 import React, { useState } from 'react';
 
 function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
+
+  
   const [isLoginView, setIsLoginView] = useState(true);
+
+  
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
-  const [phoneError, setPhoneError] = useState("");
+  const [phoneError, setPhoneError] = useState(""); 
 
+  
   if (!isOpen) return null;
 
+  
   const handlePhoneChange = (e) => {
-    const value = e.target.value.replace(/\D/g, "");
+    const value = e.target.value.replace(/\D/g, ""); 
     if (value.length <= 10) {
-      setPhone(value);
+      setPhone(value);  
       if (value.length > 0 && value.length < 10) {
-        setPhoneError("Phone number must be 10 digits.");
+        setPhoneError("Phone number must be 10 digits."); 
       } else {
         setPhoneError(""); 
       }
     }
   };
 
-  const handleSubmit = () => {
+
+  const handleSubmit = async () => {
     if (isLoginView) {
+      
       onLogin(username, password);
     } else {
+      
       if (phone.length !== 10) {
         setPhoneError("Please enter exactly 10 digits.");
         return;
       }
-      onRegister({ username, password, phone });
+
+      try {
+        
+        await onRegister({ username, password, phone });
+
+      
+        setIsLoginView(true); 
+        setUsername("");      
+        setPassword("");      
+        setPhone("");         
+        setPhoneError("");    
+      } catch (err) {
+        console.error("Registration UI reset error:", err);
+      }
     }
   };
 
+  
   return (
     <div className="modal-overlay">
       <div className="modal-content">
+        {/* Close button */}
         <button className="close-btn" onClick={onClose}>Close</button>
+        {/* Modal title */}
         <h3 className="modal-title">{isLoginView ? "Login" : "Register Account"}</h3>
-        
+
+        {/* Username input */}
         <div className="input-group">
           <input 
             type="text" 
@@ -48,7 +74,8 @@ function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
             onChange={(e) => setUsername(e.target.value)} 
           />
         </div>
-        
+
+        {/* Password input */}
         <div className="input-group">
           <input 
             type="password" 
@@ -59,6 +86,7 @@ function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
           />
         </div>
         
+        {/* Phone input - only shown when registering */}
         {!isLoginView && (
           <div className="input-group">
             <input 
