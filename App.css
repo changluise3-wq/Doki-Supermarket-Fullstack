@@ -1,6 +1,4 @@
-/* ==========================================
-   1. GLOBAL & BASE SETTINGS
-   ========================================== */
+/* 1. GLOBAL & BASE SETTINGS */
 body {
   font-family: 'Segoe UI', sans-serif;
   margin: 0;
@@ -36,9 +34,7 @@ body {
   margin: 15px 0;
 }
 
-/* ==========================================
-   2. HEADER & NAVIGATION
-   ========================================== */
+/* 2. HEADER & NAVIGATION */
 header {
   background: #e74c3c;
   color: white;
@@ -52,7 +48,6 @@ header {
   background: #e74c3c;
 }
 
-/* --- 修正前台導航列 (避免爆開) --- */
 header .header-top {
   display: flex; justify-content: space-between; align-items: center; padding: 10px 50px;
 }
@@ -130,9 +125,7 @@ nav ul li a, nav ul li button {
   background: none; border: none; cursor: pointer;
 }
 
-/* ==========================================
-   3. SHOP & PRODUCT GRID
-   ========================================== */
+/* 3. SHOP & PRODUCT GRID */
 .product-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -180,62 +173,58 @@ nav ul li a, nav ul li button {
   outline: none;
 }
 
-/* --- 搜尋欄外觀樣式優化 --- */
+/* 4. SEARCH INPUT */
 .search-input {
   padding: 12px 20px;
   width: 100%;
-  max-width: 600px; /* 增加最大寬度，讓長條形看起來更優雅大方 */
-  border-radius: 30px; /* 圓角設計 */
+  max-width: 600px; 
+  border-radius: 30px; 
   
-  /* 顏色設定：這裡套用你最滿意的 Doki 超市配色 */
-  border: 2px solid #e74c3c;      /* 邊框使用 Doki 主題紅色 */
-  background-color: #fff9f9;    /* 背景使用溫暖的極淡粉白底色 */
+  border: 2px solid #e74c3c;      
+  background-color: #fff9f9;   
   
-  /* ⚠️ 關鍵修正：把打進去文字的顏色改成深灰色或黑色，確保看得很清楚 */
   color: #333333; 
   
   font-size: 1rem;
   outline: none;
-  transition: all 0.3s ease; /* 增加動態過渡效果 */
+  transition: all 0.3s ease; /* transition */
 }
 
-/* ⚠️ 關鍵修正：單獨調整「🔍 Search for snacks...」提示詞的顏色 */
+/* placeholder */
 .search-input::placeholder {
-  color: #a0a0a0; /* 將原本的白色改成質感深灰色，在粉白底上清晰可見 */
-  opacity: 1;     /* 確保有些瀏覽器不會給它自動變透明 */
+  color: #a0a0a0; 
+  opacity: 1;     /* ensure visibility */
 }
 
-/* 當滑鼠點擊輸入框準備打字時 (Focus 狀態) */
+/* focus */
 .search-input:focus {
-  /* 讓邊框稍微加深，並在周圍產生淡淡的紅色發光外暈特效，非常有質感！ */
+  /* when click input, create a subtle glow effect */
   border-color: #c0392b;
   box-shadow: 0 0 10px rgba(231, 76, 60, 0.3);
 }
 
-/* 當滑鼠點擊輸入框時，產生微微發光的動態視覺效果 */
+/* when click input, create a subtle glow effect */
 .search-input:focus {
   box-shadow: 0 0 8px rgba(231, 76, 60, 0.4);
   border-color: #c0392b;
 }
 
 
-/* ==========================================
-   4. ADMIN DASHBOARD & TABLES
-   ========================================== */
+/* 5. ADMIN DASHBOARD & TABLES */
 .admin-search-area {
-  margin-bottom: 30px; /* 加大搜尋框與下方列表的間距 */
+  margin-bottom: 30px; 
 }
 
-/* 修改原本的 admin-section-header */
+/* admin-section-header */
 .admin-section-header {
   display: flex;
-  justify-content: center; /* 讓標題置中 */
+  justify-content: center; 
   align-items: center;
-  position: relative; /* 讓按鈕可以參考此容器定位 */
+  position: relative; /* let other elements position themselves relative to this */
   margin-bottom: 25px;
 }
 
-/* 讓按鈕在標題欄中靠右 */
+
 .admin-section-header .action-add-btn {
   position: absolute;
   right: 0;
@@ -281,7 +270,7 @@ nav ul li a, nav ul li button {
   border-bottom: 1px solid #eee;
 }
 
-/* Edit 按鈕底色 (藍色) */
+/* Edit button */
 .action-edit-btn {
   background-color: #3498db !important;
   color: white !important;
@@ -291,7 +280,7 @@ nav ul li a, nav ul li button {
   cursor: pointer;
 }
 
-/* Add Admin 按鈕底色 (綠色) */
+/* Add Admin button */
 .action-add-btn {
   background-color: #2ecc71 !important;
   color: white !important;
@@ -334,7 +323,7 @@ nav ul li a, nav ul li button {
   color: #c62828;
 }
 
-/* 移除行內樣式，統一管理 */
+/* Admin Main Title */
 .admin-main-title {
   text-align: center;
   margin-bottom: 25px;
@@ -379,14 +368,14 @@ nav ul li a, nav ul li button {
   background: #c0392b;
 }
 
-/* 修正表格與按鈕間隔 */
+
 .admin-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0 10px;
 }
 
-/* 編輯面板樣式 */
+/* edit panel */
 .edit-panel {
   background: #f8f9fa;
   padding: 20px;
@@ -406,7 +395,6 @@ nav ul li a, nav ul li button {
   flex-wrap: wrap;
 }
 
-/* 讓表格顯示更精簡 */
 .badge-role {
   background: #e9ecef;
   padding: 4px 10px;
@@ -418,7 +406,7 @@ nav ul li a, nav ul li button {
 .status-text.active { color: #27ae60; }
 .status-text.suspended { color: #e74c3c; }
 
-/* 編輯按鈕樣式 */
+/* Edit Small Button */
 .edit-small-btn {
   background: #3498db;
   color: white;
@@ -443,9 +431,8 @@ nav ul li a, nav ul li button {
 }
 
 .section-header-row h3 { margin: 0; color: #34495e; font-size: 1.2rem; }
-/* ==========================================
-   5. MODAL & GLASSMORPHISM SYSTEM
-   ========================================== */
+
+/* 6. MODAL & GLASSMORPHISM SYSTEM */
 .modal, .modal-overlay {
   position: fixed;
   z-index: 9999;
@@ -514,7 +501,7 @@ nav ul li a, nav ul li button {
   color: #444;
 }
 
-/* 針對 LoginModal 的輸入框間距 */
+/* LoginModal input */
 .input-group {
   margin-bottom: 8px; 
   width: 100%;
@@ -570,14 +557,13 @@ nav ul li a, nav ul li button {
   text-align: center;
 }
 
-/* 增加按鈕與上方欄位的距離 */
 .form-actions {
   margin-top: 30px;
   display: flex;
   gap: 10px;
 }
 
-/* 防呆彈窗專用樣式 */
+/* Confirm Modal */
 .confirm-modal-content {
   background: white;
   padding: 30px;
@@ -614,9 +600,7 @@ nav ul li a, nav ul li button {
   cursor: pointer;
 }
 
-/* ==========================================
-   6. RESPONSIVE DESIGN (RWD)
-   ========================================== */
+/* 7. RESPONSIVE DESIGN (RWD) */
 @media (max-width: 768px) {
   .header-top {
     padding: 15px 20px;
@@ -633,14 +617,13 @@ nav ul li a, nav ul li button {
   }
 }
 
-/* ==========================================
-   7. OTHER COMPONENTS & UTILITIES
-   ========================================== */
-   /* --- UserProfile 顯示模式排版 --- */
+/* 8. OTHER COMPONENTS & UTILITIES*/
+
+   /* --- UserProfile --- */
 .display-info {
   display: flex;
   flex-direction: column;
-  align-items: center; /* 讓資訊置中 */
+  align-items: center;
   gap: 12px;
   margin: 20px 0;
 }
@@ -650,43 +633,43 @@ nav ul li a, nav ul li button {
   font-size: 1.1rem;
 }
 
-/* --- UserProfile 編輯模式排版 --- */
+/* --- Edit Form --- */
 .edit-form {
   display: flex;
   flex-direction: column;
-  align-items: center; /* 讓表單置中 */
+  align-items: center;
   gap: 15px;
   max-width: 500px;
   margin: 20px auto;
 }
 
-/* 確保標籤與輸入框成對並寬度一致 */
+/* ensure proper spacing */
 .field-label {
   font-weight: bold;
-  margin-bottom: -5px; /* 縮小與下方輸入框的距離 */
-  align-self: flex-start; /* 標籤靠左對齊 */
+  margin-bottom: -5px; 
+  align-self: flex-start; /* let the label align to the left */
   width: 100%;
 }
 
 .edit-form .search-input {
-  width: 100%; /* 讓輸入框填滿容器 */
+  width: 100%; /* let the input fill its container */
   max-width: 100%; 
 }
 
-/* --- 按鈕大小調整 --- */
+
 .profile-card .add-btn {
-  width: auto; /* 取消滿版，改為根據文字大小 */
+  width: auto; 
   min-width: 150px;
   padding: 10px 25px;
   margin: 10px auto;
 }
 
 .profile-card .form-actions {
-  justify-content: center; /* 讓 Save/Cancel 按鈕置中 */
+  justify-content: center; 
   width: 100%;
 }
 
-/* 讓歡迎語獨立成行，不影響搜尋框佈局 */
+
 .welcome-banner {
   text-align: center;
   color: #e74c3c;
@@ -695,7 +678,7 @@ nav ul li a, nav ul li button {
   width: 100%;
 }
 
-/* 確保搜尋框容器不會因為內元素過多而變形 */
+
 .search-container {
   display: flex;
   justify-content: center;
@@ -712,21 +695,18 @@ nav ul li a, nav ul li button {
   outline: none;
 }
 
-/* --- 按鈕樣式 (靠右與大小修正) --- */
+
 .btn-primary, .add-btn-main { background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; width: auto; }
 .btn-secondary { background: #eee; color: #333; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; width: auto; }
 
-/* 行政標題與導航 */
 .admin-main-title { font-size: 2rem; color: #2c3e50; margin-bottom: 20px; }
 .admin-nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #eee; }
 .admin-nav-tabs button { padding: 10px 20px; border: none; background: none; cursor: pointer; font-weight: bold; color: #999; }
 .admin-nav-tabs button.active { color: #e74c3c; border-bottom: 3px solid #e74c3c; }
 
-/* 表格文字按鈕 */
 .edit-btn-text { color: #3498db; background: none; border: none; cursor: pointer; font-weight: bold; margin-right: 10px; }
 .delete-btn-text { color: #e74c3c; background: none; border: none; cursor: pointer; font-weight: bold; }
 
-/* --- 標題與搜尋置中佈局 --- */
 .admin-title-section {
   text-align: center;
   margin-bottom: 20px;
@@ -745,7 +725,7 @@ nav ul li a, nav ul li button {
 
 .admin-search-bar {
   width: 100%;
-  max-width: 500px; /* 寬度適中 */
+  max-width: 500px; 
   padding: 12px 25px;
   border-radius: 30px;
   border: 1px solid #ddd;
@@ -761,7 +741,6 @@ nav ul li a, nav ul li button {
   padding-bottom: 10px;
 }
 
-/* --- 表格標題與按鈕排版 --- */
 .table-header-row {
   display: flex;
   justify-content: space-between;
@@ -789,7 +768,6 @@ nav ul li a, nav ul li button {
 
 .add-btn-normal:hover { background: #c0392b; }
 
-/* --- 表格基礎樣式 --- */
 .admin-full-table {
   width: 100%;
   border-collapse: collapse;
@@ -801,7 +779,7 @@ nav ul li a, nav ul li button {
   border-bottom: 1px solid #f1f1f1;
 }
 
-/* --- 彈窗優化 --- */
+/* --- Modal Box --- */
 .modal-box {
   background: white !important;
   padding: 30px;
@@ -833,15 +811,15 @@ nav ul li a, nav ul li button {
   border: 1px solid #ddd;
 }
 
-/* --- 解決 Modal 透明問題 --- */
+
 .modal-overlay {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.7); /* 深色遮罩 */
+  background: rgba(0, 0, 0, 0.7); 
   display: flex; justify-content: center; align-items: center; z-index: 9999;
 }
 
 .modal-box, .modal-box-large, .modal-content-white {
-  background: #ffffff !important; /* 強制不透明白色 */
+  background: #ffffff !important; 
   padding: 30px; border-radius: 12px;
   box-shadow: 0 20px 60px rgba(0,0,0,0.4);
   color: #333; position: relative;
@@ -849,10 +827,8 @@ nav ul li a, nav ul li button {
 
 .modal-box-large { width: 90%; max-width: 800px; }
 
-/* --- 移除標題旁多餘紅標 --- */
 .section-title::before, .table-sub-title::before { display: none; }
 
-/* --- Detail 視窗內的排版 --- */
 .modal-scroll-area { max-height: 400px; overflow-y: auto; margin: 20px 0; border: 1px solid #eee; padding: 10px; }
 .inner-table { width: 100%; border-collapse: collapse; }
 .inner-table td { padding: 10px; border-bottom: 1px solid #f9f9f9; }
@@ -862,11 +838,11 @@ nav ul li a, nav ul li button {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
   background: rgba(0, 0, 0, 0.5) !important;
   display: flex; justify-content: center; align-items: center; z-index: 10000;
-  backdrop-filter: blur(4px); /* 讓背景半透明模糊，更有質感 */
+  backdrop-filter: blur(4px); 
 }
 
 .modal-box, .modal-box-large, .modal-box-confirm {
-  background-color: #ffffff !important; /* 純白背景 */
+  background-color: #ffffff !important; 
   padding: 35px; border-radius: 15px;
   box-shadow: 0 20px 60px rgba(0,0,0,0.6);
   color: #333; width: 90%; max-width: 450px;
@@ -878,9 +854,8 @@ nav ul li a, nav ul li button {
 
 .badge-self { background: #eee; color: #999; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; }
 
-/* --- 修正 AdminDashboard 中的按鈕顯色 --- */
 .edit-btn-text, .action-edit-btn {
-  background-color: #3498db !important; /* 顯眼的深藍色 */
+  background-color: #3498db !important; 
   color: #ffffff !important;
   border: none;
   padding: 6px 16px;
@@ -898,32 +873,29 @@ nav ul li a, nav ul li button {
   font-weight: bold;
 }
 
-/* 讓 Detail 按鈕區別於普通文字 */
 button.text-link {
   padding: 5px 10px;
   background-color: #f0f7ff;
   border-radius: 4px;
 }
 
-/* 修正 Modal 內容，確保它是白色且內部文字是深色 */
 .modal-box, .modal-box-large, .modal-content-white {
-  background-color: #ffffff !important; /* 不透明白 */
-  color: #333333 !important; /* 深灰色字體 */
+  background-color: #ffffff !important; 
+  color: #333333 !important;
   padding: 30px;
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0,0,0,0.5);
 }
 
-/* --- Admin 按鈕顯色 --- */
 .btn-edit-blue { background-color: #3498db !important; color: white !important; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
 .btn-delete-red { background-color: #e74c3c !important; color: white !important; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
 
-/* 側邊購物車專用 */
+
 .cart-overlay {
   position: fixed;
   top: 0; left: 0;
   width: 100vw; height: 100vh;
-  background: rgba(0, 0, 0, 0.6); /* 半透明遮罩，可以看到後面的 Shop */
+  background: rgba(0, 0, 0, 0.6);
   z-index: 10000;
   display: flex;
   justify-content: flex-end;
@@ -932,14 +904,14 @@ button.text-link {
 .cart-sidebar {
   width: 400px;
   height: 100%;
-  background: #ffffff !important; /* 絕對純白，不透明 */
+  background: #ffffff !important; 
   box-shadow: -10px 0 30px rgba(0,0,0,0.3);
   padding: 30px;
   display: flex;
   flex-direction: column;
 }
 
-/* --- 側邊購物車表格樣式 --- */
+
 .cart-table-mini {
   width: 100%;
   border-collapse: collapse;
@@ -958,21 +930,21 @@ button.text-link {
   vertical-align: middle;
 }
 
-/* 數量控制按鈕 🎯 全新優化：膠囊一體化數量控制區 (全面消滅黑色突兀底色) */
+
 .qty-control {
   display: flex !important;
   align-items: center;
   justify-content: center;
-  border: 1px solid #e74c3c !important; /* 漂亮的 Doki 主題紅邊框 */
+  border: 1px solid #e74c3c !important; 
   border-radius: 5px !important;
   overflow: hidden;
-  background-color: #ffffff !important; /* 強制背景為純白 */
+  background-color: #ffffff !important; 
   width: fit-content;
   margin: 0 auto;
 }
 
 .qty-control button {
-  background: #e74c3c !important; /* 按鈕填滿紅色 */
+  background: #e74c3c !important; 
   color: white !important;
   border: none !important;
   width: 30px !important;
@@ -984,26 +956,26 @@ button.text-link {
   align-items: center;
   justify-content: center;
   transition: background 0.2s ease;
-  border-radius: 0 !important; /* 消除原本圓角，讓它與邊框緊貼 */
+  border-radius: 0 !important; 
 }
 
 .qty-control button:hover {
-  background: #c0392b !important; /* 滑鼠懸停時加深紅色 */
+  background: #c0392b !important; 
 }
 
 .qty-control input {
   width: 45px !important;
   height: 30px !important;
   border: none !important;
-  background-color: #ffffff !important; /* 💡 關鍵修正：確保顯示數量的地方絕對是乾淨純白，不變黑 */
-  color: #333333 !important;           /* 💡 關鍵修正：數字絕對是清晰深灰色 */
+  background-color: #ffffff !important; 
+  color: #333333 !important;           
   text-align: center !important;
   font-size: 1rem !important;
   font-weight: 600 !important;
   outline: none !important;
   margin: 0 !important;
   padding: 0 !important;
-  appearance: textfield; /* 移除瀏覽器自帶的上下微調小箭頭 */
+  appearance: textfield; 
   -moz-appearance: textfield;
 }
 
@@ -1013,7 +985,7 @@ button.text-link {
   margin: 0;
 }
 
-/* 獨立調整購物車內的移除 ❌ 按鈕外觀 */
+/* cart remove button */
 .del-icon-btn {
   background: none !important;
   border: none !important;
@@ -1024,10 +996,10 @@ button.text-link {
 }
 
 .del-icon-btn:hover {
-  transform: scale(1.2); /* 懸停時稍微放大 ❌ 增加互動感 */
+  transform: scale(1.2); /* scale up on hover */
 }
 
-/* 結帳按鈕 */
+/* checkout button */
 .checkout-btn-final {
   width: 100%;
   background-color: #e74c3c;
@@ -1061,7 +1033,7 @@ button.text-link {
   font-size: 0.9rem;
 }
 
-/* 讓歷史紀錄看起來跟即時購物車有區別 */
+
 .order-detail-container {
   display: flex;
   flex-direction: column;
