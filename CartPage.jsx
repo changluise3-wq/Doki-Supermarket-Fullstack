@@ -4,32 +4,32 @@ import axios from 'axios';
 function CartPage({ cart, onClose, onUpdate, onCheckout }) {
   const token = localStorage.getItem('token');
   const headers = { headers: { Authorization: `Bearer ${token}` } };
-  //算總金額
+  
   const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-  // 1. 修改數量 API
+  
     const updateQuantity = async (cartId, newQty) => {
-      // 💡 調整防呆：允許 0 通過（因為打字刪光時需要狀態先變 0，畫面的字才刪得掉）
+      
       if (newQty < 0) return; 
 
         const token = localStorage.getItem('token');
         try {
-            // 直接更新該筆購物車紀錄的數量
+            
             await axios.put(`http://localhost:3000/api/cart/${cartId}`, 
             { quantity: newQty },
             { headers: { Authorization: `Bearer ${token}` } }
             );
-            onUpdate(); // 💡 關鍵：通知 App.jsx 重新 fetchCart()，這樣右上角的總數 Badge 與總金額才會同步更新！
+            onUpdate(); 
         } catch (err) { 
           console.error(err); 
         }
       };
 
-  // 2. 刪除品項 API
+  
   const removeItem = async (id) => {
     try {
       await axios.delete(`http://localhost:3000/api/cart/${id}`, headers);
-      onUpdate(); // 刷新購物車
+      onUpdate(); 
     } catch (err) { console.error(err); }
   };
 
@@ -63,34 +63,38 @@ function CartPage({ cart, onClose, onUpdate, onCheckout }) {
                       <button onClick={() => updateQuantity(item.id, item.quantity - 1)}>-</button>                        
                       <input 
                         type="number" 
-                        style={{ width: '50px', textAlign: 'center', margin: '0 5px' }} // 置中微調
-                        value={item.quantity === 0 ? "" : item.quantity} // 💡 關鍵：如果是 0 就顯示空，讓退格鍵能刪乾淨
+                        style={{ width: '50px', textAlign: 'center', margin: '0 5px' }} 
+                        // let the input be empty when quantity is 0 to allow user to type new number
+                        value={item.quantity === 0 ? "" : item.quantity} 
+
+                        // handle change immediately to allow fast updates, but also handle blur to prevent invalid state
                         onChange={(e) => {
                           const val = e.target.value;
 
-                          // 當用戶用 Backspace 刪光字時，先讓它在前端和資料庫變 0，釋放鎖定
+                          
                           if (val === "") {                            
                             updateQuantity(item.id, 0);
                             } else {
+                              // only allow positive integers
                               const parsed = parseInt(val);
-                              // 只有輸入正整數時才觸發即時更新
+                              
                               if (parsed > 0) {
                                 updateQuantity(item.id, parsed);
                               }
                             }
                         }}               
                         onBlur={() => {
-                          // 💡 離焦防呆：打完字滑鼠點到旁邊後，如果是空白或 0，自動校正回 1
+                          
                           if (item.quantity <= 0) {
                             updateQuantity(item.id, 1);
                           }
                         }}
                       />
-                      
-                      {/* 加號按鈕 */}
+                    
                       <button onClick={() => updateQuantity(item.id, item.quantity + 1)}>+</button>
                       </div>
                     </td>
+                    {/* subtotal = price * quantity */}
                     <td>${(item.price * item.quantity).toFixed(2)}</td>
                     <td>
                       <button className="del-icon-btn" onClick={() => removeItem(item.id)}>❌</button>
