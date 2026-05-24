@@ -16,12 +16,13 @@ A comprehensive web application featuring a robust management dashboard, real-ti
 
 ## Installation
 1. Clone the repository.
-2. Install dependencies: `npm install`.
-3. Import `doki.sql` into your MySQL server.
-4. Duplicate `.env.example` and rename it to `.env`.
-5. Fill in your local MySQL password in the `.env` file.
-6. Start backend: `node server.js`.
-7. Start frontend: `npm run dev`.
+2. Open frontend terminal and Install dependencies: `npm install`.
+3. Open backend terminal and Install dependencies:`npm install dotenv`.
+4. Import `doki.sql` into your MySQL server.
+5. Duplicate `.env.example` and rename it to `.env`.
+6. Fill in your local MySQL password in the `.env` file.
+7. Start backend: `node server.js`.
+8. Start frontend: `npm run dev`.
 
 ---
 
