@@ -1,49 +1,49 @@
 import React, { useState } from 'react';
-// 接收來自 App.jsx 的 Props 參數
+
 function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
 
-  // 控制目前顯示的是登入(true) 還是 註冊(false) 畫面
+  
   const [isLoginView, setIsLoginView] = useState(true);
 
-  // 儲存使用者輸入的變數狀態
+  
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
-  const [phoneError, setPhoneError] = useState(""); // 儲存電話格式錯誤的訊息
+  const [phoneError, setPhoneError] = useState(""); 
 
-  // 如果這個 Modal 沒有被打開 (isOpen === false)，就什麼都不渲染
+  
   if (!isOpen) return null;
 
-  // 處理電話輸入防呆：只能輸入數字，且上限 10 碼
+  
   const handlePhoneChange = (e) => {
-    const value = e.target.value.replace(/\D/g, ""); // 利用正規表達式移除非數字的字元
+    const value = e.target.value.replace(/\D/g, ""); 
     if (value.length <= 10) {
-      setPhone(value);  // 更新電話狀態
+      setPhone(value);  
       if (value.length > 0 && value.length < 10) {
-        setPhoneError("Phone number must be 10 digits."); // 不足10碼顯示錯誤
+        setPhoneError("Phone number must be 10 digits."); 
       } else {
-        setPhoneError(""); // 剛好10碼則清空錯誤
+        setPhoneError(""); 
       }
     }
   };
 
-// 當使用者點擊「送出按鈕」時觸發
+
   const handleSubmit = async () => {
     if (isLoginView) {
-      // 點擊【登入】: 呼叫 App.jsx 傳下來的登入函式
+      
       onLogin(username, password);
     } else {
-      // 點擊【註冊】: 先檢查電話有沒有滿 10 碼
+      
       if (phone.length !== 10) {
         setPhoneError("Please enter exactly 10 digits.");
         return;
       }
 
       try {
-        // 1. 先執行 App.jsx 傳下來的註冊發送
+        
         await onRegister({ username, password, phone });
 
-      // 2. 如果成功沒有噴錯誤，直接在這裡清空與切換！
+      
         setIsLoginView(true); 
         setUsername("");      
         setPassword("");      
@@ -59,12 +59,12 @@ function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
   return (
     <div className="modal-overlay">
       <div className="modal-content">
-        {/* 右上角的關閉按鈕 */}
+        {/* Close button */}
         <button className="close-btn" onClick={onClose}>Close</button>
-        {/* 依據目前的 View 動態顯示標題 */}
+        {/* Modal title */}
         <h3 className="modal-title">{isLoginView ? "Login" : "Register Account"}</h3>
 
-        {/* 帳號輸入框 */}
+        {/* Username input */}
         <div className="input-group">
           <input 
             type="text" 
@@ -75,7 +75,7 @@ function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
           />
         </div>
 
-        {/* 密碼輸入框 */}
+        {/* Password input */}
         <div className="input-group">
           <input 
             type="password" 
@@ -86,7 +86,7 @@ function LoginModal({ isOpen, onClose, onLogin, onRegister }) {
           />
         </div>
         
-        {/* 如果目前是「註冊畫面」，才額外顯示電話輸入框 */}
+        {/* Phone input - only shown when registering */}
         {!isLoginView && (
           <div className="input-group">
             <input 
