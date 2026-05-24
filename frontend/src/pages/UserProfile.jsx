@@ -9,7 +9,7 @@ function UserProfile({ user, onUpdate }) {
     phone: user?.phone || ""
   });
 
-  // 進入編輯模式時，重新同步最新的 user 資料到輸入框
+  
   const handleStartEdit = () => {
     setProfile({
       fullName: user?.fullName || user?.full_name || "",
@@ -19,27 +19,27 @@ function UserProfile({ user, onUpdate }) {
     setIsEditing(true);
   };
 
-  // 修正電話輸入邏輯：確保只能輸入數字且上限 10 碼
+  
   const handlePhoneChange = (e) => {
     const value = e.target.value;
-    // 1. 允許空字串（這樣你才能把字刪掉）
-    // 2. 檢查是否為純數字且長度 <= 10
+    
+    
     if (value === "" || (/^\d+$/.test(value) && value.length <= 10)) {
         setProfile(prev => ({ ...prev, phone: value }));
     }
   };
 
   const handleSaveProfile = async () => {
-    // 驗證電話長度
+    
     if (profile.phone.length !== 10) {
       alert("Phone number must be exactly 10 digits.");
       return;
     }
 
     try {
-      const token = localStorage.getItem('token'); // 取得 Token
+      const token = localStorage.getItem('token'); 
       
-      // 執行更新，並帶上正確的 Headers 解決 401 問題
+      
       await axios.put(`http://localhost:3000/api/user/profile/${user?.id}`, profile, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -47,7 +47,7 @@ function UserProfile({ user, onUpdate }) {
       alert("Profile updated successfully!");
       setIsEditing(false);
       
-      // 觸發 App.jsx 的 fetchUserStatus 重新抓取資料庫內容
+      
       if (onUpdate) onUpdate(); 
     } catch (err) {
       console.error("Update error:", err);
