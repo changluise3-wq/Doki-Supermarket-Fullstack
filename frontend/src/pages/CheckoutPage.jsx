@@ -9,18 +9,18 @@ function CheckoutPage({ cart, user, onOrderComplete }) {
 const handlePlaceOrder = async () => {
   const token = localStorage.getItem('token');
   try {
-    // 修正：這裡必須是 /api/checkout
+    
     const res = await axios.post("http://localhost:3000/api/checkout", 
       { notes: "Customer final order" }, 
       { headers: { Authorization: `Bearer ${token}` } }
     );
 
     if (res.data.success) {
-      alert("Order Successful! Cart Cleared.");
-      onOrderComplete(); // 回到 App.jsx 觸發 fetchCart 歸零
+      alert("Order Successful! Thank you for shopping with us.");
+      onOrderComplete(); 
     }
   } catch (err) {
-    // 顯示具體錯誤，如果是 404 代表後端路由沒設好
+    
     alert("Checkout Error: " + (err.response?.status || "Connection Error"));
     console.error(err);
   }
