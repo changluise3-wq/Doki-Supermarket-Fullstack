@@ -15,19 +15,29 @@ function App() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
-  // 1. 獲取購物車 (自動帶 Token)
+  
   const fetchCart = async () => {
+    
     const token = localStorage.getItem('token');
+    
     if (!token) return setCart([]);
     try {
+      
       const res = await axios.get("http://localhost:3000/api/cart", {
         headers: { Authorization: `Bearer ${token}` }
       });
+      
       setCart(res.data);
     } catch (err) { console.error(err); }
   };
 
-  // 2. 獲取用戶狀態 (用於 Profile 更新後同步)
+
+
+useEffect(() => {
+  fetchCart();
+}, [user]);
+
+  
   const fetchUserStatus = async () => {
     const token = localStorage.getItem('token');
     if (!user || !token) return;
@@ -47,20 +57,23 @@ function App() {
     fetchCart();
   }, [user]);
 
-  // 3. 註冊與登入邏輯 (保持不變)
+  
   const handleRegister = async (registrationData) => {
     try {
       const res = await axios.post("http://localhost:3000/api/register", registrationData);
       if (res.data.success) {
         alert("Registration successful! Please login.");
-        setIsLoginOpen(false);
+        
+        // setIsLoginOpen(false);
       }
     } catch (err) {
+      
       alert("Registration failed: " + (err.response?.data?.message || "Server error"));
+      throw err; 
     }
   };
 
-  // 4.登入 (存入 Token)
+  
   const handleLogin = async (username, password) => {
     try {
       const res = await axios.post("http://localhost:3000/api/login", { username, password });
@@ -70,15 +83,15 @@ function App() {
         setUser(res.data.user);
         setIsLoginOpen(false);
         if (res.data.user.role === 'admin') {
-        setPage('admin'); // 管理員登入直接進管理後台
+        setPage('admin'); 
         } else {
-          setPage('shop');  // 一般用戶進商店
+          setPage('shop');  
         }
       }
     } catch (err) { alert(err.response?.data?.message || "Login failed"); }
   };
 
-  // 5.登出
+  
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -101,11 +114,11 @@ function App() {
               <button className="nav-btn" onClick={() => setIsLoginOpen(true)}>Login</button>
             ) : (
               <>
-                <span className="user-info-text">
-                  Hi, {user.username} <span className="user-role-tag">({user.role})</span>
+                <span className="user-info-text" style={{ fontWeight: '500', marginRight: '5px' }}>
+                  Hi, {user.username}
                 </span>
 
-                {/* --- 管理員切換鈕 --- */}
+                {/* --- admin button --- */}
                 {user.role === 'admin' && (
                   <div className="admin-toggle-group">
                     {page === 'admin' ? (
@@ -116,7 +129,7 @@ function App() {
                   </div>
                 )}
 
-                {/* 非後台模式下才顯示個人資料按鈕 */}
+                {/* profile button */}
                 {page !== 'admin' && (
                   <button className={`nav-btn ml-10 ${page === 'profile' ? 'active' : ''}`} onClick={() => setPage('profile')}>
                     My Profile
@@ -127,16 +140,16 @@ function App() {
               </>
             )}
 
-            {/* --- 只有在「非後台」頁面才顯示購物車 --- */}
+            {/* --- cart  --- */}
             {page !== 'admin' && (
               <button className="nav-btn ml-10 badge-container" onClick={() => setIsCartOpen(true)}>
-                🛒 Cart <span className="badge">{cart.length}</span>
+                🛒 Cart <span className="badge">{cart.reduce((sum, item) => sum + Number(item.quantity), 0)}</span>
               </button>
             )}
           </div>
         </div>
 
-        {/* --- 只有在「非後台」頁面才顯示商店導覽列 --- */}
+        {/* --- hoover --- */}
         {page !== 'admin' && (
           <nav>
             <ul>
@@ -149,13 +162,13 @@ function App() {
       </header>
 
       <main className="container">
-        {/* 個人資料頁面：負責編輯與顯示個人資訊 */}
+        {/* userProfile page */}
         {page === 'profile' && user && <UserProfile user={user} onUpdate={fetchUserStatus} />}
-        {/* 管理員頁面 */}
+        {/* admin page */}
         {page === 'admin' && user?.role === 'admin' && (
           <AdminDashboard user={user} />
         )}
-        {/* 商店頁面：負責產品與購物 */}
+        {/* shop page */}
         {page === 'shop' && <Shop cart={cart} onUpdate={fetchCart} user={user} setIsLoginOpen={setIsLoginOpen}/>}
         
         {/* {page === 'cart' && <CartPage user={user} cart={cart} onUpdate={fetchCart} onClose={() => setPage('shop')}/>} */}
@@ -163,7 +176,7 @@ function App() {
           <CartPage 
             cart={cart} 
             onClose={() => setIsCartOpen(false)} 
-            onUpdate={fetchCart} // ⚠️ 檢查這裡，必須叫 onUpdate 且傳入 fetchCart
+            onUpdate={fetchCart} 
             onCheckout={() => {
               setIsCartOpen(false);
               setPage('checkout');
@@ -175,10 +188,10 @@ function App() {
             cart={cart} 
             user={user} 
             onOrderComplete={() => {
-              alert("Order Placed Successfully!");
-              setPage('shop');    // 1. 跳回商店
-              fetchCart();        // 2. ⚠️ 關鍵：重新執行 API，抓取被後端刪除後的空購物車
-              fetchUserStatus();  // 3. 同步用戶資料
+              // alert("Order Placed Successfully!");
+              setPage('shop');    
+              fetchCart();        
+              fetchUserStatus();  
             }}
           />
         )}
