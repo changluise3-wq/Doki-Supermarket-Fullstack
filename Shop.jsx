@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import axios from 'axios';
 
 function Shop({ cart, onUpdate, user, setIsLoginOpen }) {
-  const [searchTerm, setSearchTerm] = useState(""); // 搜尋狀態
+  const [searchTerm, setSearchTerm] = useState(""); 
   
-  // 原本的 10 項產品資料，補上 ID 以便與資料庫關聯
+  
   const [products] = useState([
     { id: 1, name: "I-MEI chocolate puff", price: 3.99, img: "1-I-MEI chocolate puff.jpg" },
     { id: 2, name: "Taiwanese rice crisps snack", price: 3.99, img: "2-Taiwanese rice crisps snack.jpg" },
@@ -18,41 +18,41 @@ function Shop({ cart, onUpdate, user, setIsLoginOpen }) {
     { id: 10, name: "Lotte Sasha Rich Matcha Chocolate Crisps", price: 4.99, img: "10-Lotte Sasha Rich Matcha Chocolate Crisps.jpg" }
   ]);
 
-  // Live Search 過濾邏輯
+  
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // --- [新增/修改] 加入購物車 (帶 Token) ---
-  // Shop.jsx 中的加入購物車功能
+  
+  
     const handleAddToCart = async (product) => {
-        const token = localStorage.getItem('token');  //1. 抓取這名用戶的專屬通行證
-        if (!token) return setIsLoginOpen(true);    // 2. 如果沒登入，強制跳出登入視窗（符合邏輯！
+        const token = localStorage.getItem('token');  
+        if (!token) return setIsLoginOpen(true);    
 
         try {
-            // 呼叫 API 更新後端資料庫
+            
             await axios.post("http://localhost:3000/api/cart", 
-            { product_id: product.id, quantity: 1 },  // 3. 傳入商品編號
-            { headers: { Authorization: `Bearer ${token}` } } // 4. 直接把通行證(Token)塞在車頭
+            { product_id: product.id, quantity: 1 },  
+            { headers: { Authorization: `Bearer ${token}` } } 
             );
-            // ⚠️ 重要：執行 App.jsx 傳下來的 fetchCart，讓右上角數字即時變動
+            
             onUpdate(); 
         } catch (err) { console.error(err); }
     };
 
-  // --- [新增/修改] 更新數量與刪除 (帶 Token) ---
+  
   const updateQty = async (cartId, newQty) => {
     const token = localStorage.getItem('token');
     if (!token) return;
 
     try {
       if (newQty <= 0) {
-        // 呼叫刪除 API
+        
         await axios.delete(`http://localhost:3000/api/cart/${cartId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
       } else {
-        // 呼叫更新數量 API
+        
         await axios.put(`http://localhost:3000/api/cart/${cartId}`, 
           { quantity: newQty }, 
           { headers: { Authorization: `Bearer ${token}` } }
@@ -64,7 +64,7 @@ function Shop({ cart, onUpdate, user, setIsLoginOpen }) {
     }
   };
 
-  // --- [新增] 結帳功能 (帶 Token) ---
+  
   const handleCheckout = async () => {
     const token = localStorage.getItem('token');
     if (!token || cart.length === 0) return;
@@ -76,7 +76,7 @@ function Shop({ cart, onUpdate, user, setIsLoginOpen }) {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert("Order placed successfully!");
-      onUpdate(); // 結帳後購物車會清空
+      onUpdate(); 
     } catch (err) {
       alert("Checkout failed: " + (err.response?.data || "Server error"));
     }
@@ -87,10 +87,9 @@ function Shop({ cart, onUpdate, user, setIsLoginOpen }) {
       <div className="products">
         <h2>New Products</h2>
 
-        {/* 歡迎語區塊 */}
         {user && <p className="text-red welcome-banner">Welcome back, {user.username}!</p>}
         
-        {/* 原本的搜尋框 */}
+        {/* search box */}
         <div className="search-container">
           <input 
             type="text" 
@@ -101,10 +100,10 @@ function Shop({ cart, onUpdate, user, setIsLoginOpen }) {
           />
         </div>
 
-        {/* 產品網格 */}
+        {/* product grid */}
         <div className="product-grid">
           {filteredProducts.map((p) => {
-            // 比對產品 ID 以找出購物車中的對應項
+            
             const item = cart.find((i) => i.product_id === p.id);
 
             return (
@@ -123,26 +122,26 @@ function Shop({ cart, onUpdate, user, setIsLoginOpen }) {
                       <button onClick={() => updateQty(item.id, item.quantity - 1)}>-</button>
                       <input 
                         type="number" 
-                        // 當數量是 0 時顯示空字串，方便顧客直接打字
+                        
                         value={item.quantity === 0 ? "" : item.quantity}                       
                           
                         onChange={(e) => {
                           const val = e.target.value;
                           if (val === "") {
-                            // 1. 當顧客把字刪光時，我們先讓前端狀態暫時變成 0，這樣鍵盤才刪得掉字！
+                            
                             updateQty(item.id, 0);
                           } else {
                             const parsed = parseInt(val);
-                            // 2. 如果打的是正常數字，就即時更新
+                            
                             if (parsed > 0) {                            
                               updateQty(item.id, val);
                             }
                           }
                         }}
-                        // 💡 核心優化：當顧客打完字、滑鼠點到旁邊（失去焦點）時觸發
+                        
                         onBlur={() => {
-                          // 3. 顧客把字刪光（變 0）然後滑鼠點到旁邊，代表他不要了！
-                          // 這裡直接執行 updateQty(item.id, 0)，觸發刪除 API，按鈕一秒變回 Add to Cart！
+                          
+                          
                           if (item.quantity <= 0) {
                             updateQty(item.id, 0);
                           }
@@ -157,14 +156,14 @@ function Shop({ cart, onUpdate, user, setIsLoginOpen }) {
           })}
         </div>
 
-        {/* 搜尋不到東西時的提示 */}
+        {/* no results message */}
         {filteredProducts.length === 0 && (
           <div className="no-results">
             <p>No snacks matching <span className="text-red">"{searchTerm}"</span>.</p>
           </div>
         )}      
 
-        {/* 只有在購物車有東西時才顯示結帳按鈕 */}
+        {/* checkout button */}
         {cart.length > 0 && (
           <div style={{ marginTop: '40px', textAlign: 'center' }}>
              <hr className="separator" />
