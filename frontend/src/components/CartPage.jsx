@@ -4,30 +4,32 @@ import axios from 'axios';
 function CartPage({ cart, onClose, onUpdate, onCheckout }) {
   const token = localStorage.getItem('token');
   const headers = { headers: { Authorization: `Bearer ${token}` } };
-
+  
   const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-  // 1. 修改數量 API
-  // CartPage.jsx
+  
     const updateQuantity = async (cartId, newQty) => {
-        if (newQty < 1) return; // 防呆：最少 1 件
+      
+      if (newQty < 0) return; 
+
         const token = localStorage.getItem('token');
-        
         try {
-            // 直接更新該筆購物車紀錄的數量
+            
             await axios.put(`http://localhost:3000/api/cart/${cartId}`, 
             { quantity: newQty },
             { headers: { Authorization: `Bearer ${token}` } }
             );
-            onUpdate(); // 同步 UI
-        } catch (err) { console.error(err); }
-    };
+            onUpdate(); 
+        } catch (err) { 
+          console.error(err); 
+        }
+      };
 
-  // 2. 刪除品項 API
+  
   const removeItem = async (id) => {
     try {
       await axios.delete(`http://localhost:3000/api/cart/${id}`, headers);
-      onUpdate(); // 刷新購物車
+      onUpdate(); 
     } catch (err) { console.error(err); }
   };
 
@@ -41,7 +43,7 @@ function CartPage({ cart, onClose, onUpdate, onCheckout }) {
 
         <div className="cart-content">
           {cart.length === 0 ? (
-            <p className="empty-msg">Your cart is empty.</p>
+            <p className="empty-msg"> Cart is empty.</p>
           ) : (
             <table className="cart-table-mini">
               <thead>
@@ -57,15 +59,45 @@ function CartPage({ cart, onClose, onUpdate, onCheckout }) {
                   <tr key={item.id}>
                     <td>{item.name}</td>
                     <td>
-                      <div className="qty-control">
-                        <button className="qty-btn-vivid" onClick={() => updateQuantity(item.id, item.quantity - 1)}>-</button>
-                        <span>{item.quantity}</span>
-                        <button className="qty-btn-vivid" onClick={() => updateQuantity(item.id, item.quantity + 1)}>+</button>
+                      <div className="qty-control">                  
+                      <button onClick={() => updateQuantity(item.id, item.quantity - 1)}>-</button>                        
+                      <input 
+                        type="number" 
+                        style={{ width: '50px', textAlign: 'center', margin: '0 5px' }} 
+                        // let the input be empty when quantity is 0 to allow user to type new number
+                        value={item.quantity === 0 ? "" : item.quantity} 
+
+                        // handle change immediately to allow fast updates, but also handle blur to prevent invalid state
+                        onChange={(e) => {
+                          const val = e.target.value;
+
+                          
+                          if (val === "") {                            
+                            updateQuantity(item.id, 0);
+                            } else {
+                              // only allow positive integers
+                              const parsed = parseInt(val);
+                              
+                              if (parsed > 0) {
+                                updateQuantity(item.id, parsed);
+                              }
+                            }
+                        }}               
+                        onBlur={() => {
+                          
+                          if (item.quantity <= 0) {
+                            updateQuantity(item.id, 1);
+                          }
+                        }}
+                      />
+                    
+                      <button onClick={() => updateQuantity(item.id, item.quantity + 1)}>+</button>
                       </div>
                     </td>
+                    {/* subtotal = price * quantity */}
                     <td>${(item.price * item.quantity).toFixed(2)}</td>
                     <td>
-                      <button className="del-icon-btn" onClick={() => removeItem(item.id)}>🗑️</button>
+                      <button className="del-icon-btn" onClick={() => removeItem(item.id)}>❌</button>
                     </td>
                   </tr>
                 ))}
